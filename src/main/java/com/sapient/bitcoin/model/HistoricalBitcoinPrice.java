@@ -14,7 +14,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
-public class HistoricalBitCoinPriceResponse {
+public class HistoricalBitcoinPrice {
 
     private Map<String, BigDecimal> bpi;
 
