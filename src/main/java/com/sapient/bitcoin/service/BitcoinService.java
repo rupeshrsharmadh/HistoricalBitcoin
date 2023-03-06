@@ -40,14 +40,17 @@ public class BitcoinService {
 
         HistoricalBitcoinPrice response = bitcoinDAO.getHistoricalPriceResponse(currency, start, end);
 
-        // Get maximum rate
-        getMaximumRate(response);
+        if (response != null) {
 
-        // Get minimum rate
-        getMinimumRate(response);
+            // Get maximum rate
+            getMaximumRate(response);
 
-        // Update the response in cache asynchronously
-        bitcoinCache.updateHistoricalBitcoinPriceCache(response);
+            // Get minimum rate
+            getMinimumRate(response);
+
+            // Update the response in cache asynchronously
+            bitcoinCache.updateHistoricalBitcoinPriceCache(response);
+        }
 
         return response;
     }

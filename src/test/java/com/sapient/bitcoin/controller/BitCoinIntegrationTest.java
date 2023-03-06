@@ -3,10 +3,12 @@ package com.sapient.bitcoin.controller;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.sapient.bitcoin.model.HistoricalBitcoinPrice;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -18,7 +20,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class BitCoinControllerTest {
+class BitCoinIntegrationTest {
+
+    @Value(value="${local.server.port}")
+    private int port;
+
+    private final String GET_HISTORICAL_PRICE_URL = "/api/v1/historical-bitcoin-price?currency=USD&startDate=2022-03-02&endDate=2023-03-01";
 
     @RegisterExtension
     static WireMockExtension EXTERNAL_SERVICE = WireMockExtension.newInstance()
@@ -29,6 +36,14 @@ class BitCoinControllerTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+
+
+    @Test
+    public void getHistoricalBitcoinPrice() throws Exception {
+        Assertions.assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/" + GET_HISTORICAL_PRICE_URL,
+                HistoricalBitcoinPrice.class)).isNotNull();
+    }
+
     //@Test
     public void testCircuitBreaker() {
         EXTERNAL_SERVICE.stubFor(WireMock.get("https://api.coindesk.com/v1/bpi/historical/close")
@@ -36,7 +51,7 @@ class BitCoinControllerTest {
 
         IntStream.rangeClosed(1, 5)
                 .forEach(i -> {
-                    ResponseEntity<String> response = restTemplate.getForEntity("/api/v1/historical-bitcoin-price?currency=USD&startDate=2022-03-02&endDate=2023-03-01", String.class);
+                    ResponseEntity<String> response = restTemplate.getForEntity("http://localhost:" + port + "/" + GET_HISTORICAL_PRICE_URL, String.class);
                     Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
                 });
 
